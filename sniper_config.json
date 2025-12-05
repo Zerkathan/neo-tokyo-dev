@@ -1,0 +1,16 @@
+{
+  "telegram_token": "YOUR_BOT_TOKEN_HERE",
+  "targets": [
+    {
+      "name": "Example Product",
+      "url": "https://example.com/product",
+      "selector": ".price",
+      "change_type": "price_drop",
+      "threshold": 5.0,
+      "check_interval": 60,
+      "telegram_chat_id": "YOUR_CHAT_ID",
+      "discord_webhook": null,
+      "enabled": false
+    }
+  ]
+}
