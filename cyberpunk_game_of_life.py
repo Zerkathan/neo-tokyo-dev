@@ -25,6 +25,7 @@ class Colors:
     RED = "\033[91m"        # Células corruptas
     CYAN = "\033[96m"       # Firewalls
     YELLOW = "\033[93m"     # Encriptadas
+    MAGENTA = "\033[95m"    # Glitches y títulos
     DIM = "\033[2m"         # Células muertas
     BOLD = "\033[1m"
     
