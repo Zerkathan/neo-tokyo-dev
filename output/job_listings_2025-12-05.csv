@@ -1,0 +1,15 @@
+title,company,location,salary,url,source,match_score,keywords_matched,posted_date
+Python Machine Learning Engineer,Netflix,"Los Gatos, CA/Remote",$180k-$220k,https://netflix.com/careers/ml-engineer,LinkedIn,62,"Python, Remote, Machine Learning",1 week ago
+Senior Python Engineer,OpenAI,Remote,$180k-$220k,https://openai.com/careers/senior-python-engineer,Indeed,58,"Python, Remote",2 days ago
+Senior Python Backend Engineer,Notion,Remote,$170k-$210k,https://notion.so/careers/backend-engineer,RemoteOK,58,"Python, Remote",3 days ago
+AI Engineer,DeepMind,London/Remote,£120k-£160k,https://deepmind.google/careers/ai-engineer,Indeed,48,"AI Engineer, Remote",1 week ago
+Machine Learning Engineer,Anthropic,San Francisco/Remote,$170k-$210k,https://anthropic.com/careers/ml-engineer,Indeed,48,"Remote, Machine Learning",3 days ago
+Remote Python Engineer,GitLab,Remote,$150k-$190k,https://gitlab.com/careers/python-engineer,RemoteOK,48,"Python, Remote",4 days ago
+Full Stack Python Developer,Stripe,Remote,$160k-$200k,https://stripe.com/careers/fullstack-python,RemoteOK,48,"Python, Remote",2 days ago
+Machine Learning Engineer,Hugging Face,Remote,$140k-$180k,https://huggingface.co/careers/ml-engineer,RemoteOK,48,"Remote, Machine Learning",6 days ago
+Remote Python Engineer,Shopify,Remote,$140k-$180k,https://shopify.com/careers/python-engineer,LinkedIn,48,"Python, Remote",3 days ago
+AI Research Engineer,Meta,"Menlo Park, CA/Remote",$200k-$250k,https://meta.com/careers/ai-research,LinkedIn,34,Remote,5 days ago
+Lead AI Engineer,Tesla,"Palo Alto, CA",$190k-$240k,https://tesla.com/careers/lead-ai-engineer,LinkedIn,29,AI Engineer,2 days ago
+Senior Python Developer,Amazon,"Seattle, WA",$160k-$200k,https://amazon.jobs/python-developer,LinkedIn,29,Python,4 days ago
+Python Developer,Microsoft,"Redmond, WA",$140k-$180k,https://microsoft.com/careers/python-dev,Indeed,19,Python,5 days ago
+Senior AI Researcher,Google Brain,"Mountain View, CA",$200k-$250k,https://google.com/careers/ai-researcher,Indeed,15,,1 day ago
