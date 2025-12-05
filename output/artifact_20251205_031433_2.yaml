@@ -1,0 +1,16 @@
+# Configuración de la carpeta y diccionario de extensiones
+carpeta_monitoreo: /path/to/descargas
+mappings_extensión_categoria:
+  '.pdf': ['Documentos']
+  '.jpg': ['Imágenes']
+  '.png': ['Imágenes']
+  '.gif': ['Imágenes']
+  '.mp4': ['Videos']
+  '.avi': ['Videos']
+  '.exe': ['Instaladores']
+  '.msi': ['Instaladores']
+  '.dmg': ['Instaladores']
+  '.zip': ['Archivos']
+  '.rar': ['Archivos']
+  '.mp3': ['Música']
+  '.wav': ['Música']
