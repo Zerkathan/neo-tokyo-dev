@@ -1,0 +1,123 @@
+Basado en el código de la API Rate Limiter que acabamos de crear, genera una especificación OpenAPI 3.0 (Swagger) completa en formato YAML.
+
+CÓDIGO DE LA API:
+
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI(title="Rate Limiter API", version="1.0.0")
+
+class Usuario(BaseModel):
+    id_usuario: int
+
+class TokenBucket:
+    def __init__(self, capacidad: int, tiempo_token: float, max_tokens_user: int = None):
+        self.capacidad = capacidad
+        self.tiempo_token = tiempo_token
+        self.token_timestamps: Dict[int, List[Tuple[float, float]]] = {}
+        self.max_tokens_user = max_tokens_user
+        self.lock = threading.Lock()
+    
+    async def tomar_token(self, usuario_id: int) -> bool:
+        # Implementación del token bucket
+        pass
+    
+    def get_tokens(self, usuario_id: int) -> int:
+        # Retorna tokens disponibles
+        pass
+    
+    def get_stats(self) -> Dict:
+        # Retorna estadísticas del sistema
+        pass
+
+rate_limiter = TokenBucket(capacidad=10, tiempo_token=60.0, max_tokens_user=15)
+
+@app.post("/rate-limited")
+async def rate_limited_endpoint(usuario: Usuario, token_bucket: TokenBucket = Depends()):
+    """
+    Endpoint protegido por rate limiting.
+    Intenta tomar un token para el usuario.
+    Retorna 200 si exitoso, 429 si rate limited.
+    """
+    if await token_bucket.tomar_token(usuario.id_usuario):
+        tokens_restantes = token_bucket.capacidad - token_bucket.get_tokens(usuario.id_usuario)
+        return {"mensaje": "Token tomado exitosamente", "usuario_id": usuario.id_usuario, "tokens_restantes": tokens_restantes}
+    else:
+        raise HTTPException(status_code=429, detail="Too Many Requests")
+
+@app.get("/stats")
+async def get_stats(token_bucket: TokenBucket = Depends()):
+    """Obtiene estadísticas globales del rate limiter."""
+    return token_bucket.get_stats()
+
+@app.get("/user/{usuario_id}/tokens")
+async def get_user_tokens(usuario_id: int, token_bucket: TokenBucket = Depends()):
+    """Obtiene tokens disponibles de un usuario específico."""
+    tokens = token_bucket.get_tokens(usuario_id)
+    return {"usuario_id": usuario_id, "tokens_usados": tokens, "tokens_disponibles": token_bucket.capacidad - tokens, "capacidad_total": token_bucket.capacidad}
+
+@app.get("/")
+async def root():
+    """Endpoint raíz con información de la API."""
+    return {"nombre": "Rate Limiter API - Neo-Tokyo Dev", "version": "1.0.0", "descripcion": "Rate Limiter con Token Bucket Algorithm"}
+
+REQUISITOS PARA LA ESPECIFICACIÓN OpenAPI:
+
+1. INFORMACIÓN GENERAL:
+   - Título: "Rate Limiter API - Neo-Tokyo Dev"
+   - Versión: 1.0.0
+   - Descripción completa del propósito
+   - Información de contacto y licencia
+   - Servidores (local y producción)
+
+2. ENDPOINTS:
+   - POST /rate-limited: Endpoint protegido
+   - GET /stats: Estadísticas del sistema
+   - GET /user/{usuario_id}/tokens: Tokens de usuario
+   - GET /: Info de la API
+
+3. ESQUEMAS (schemas):
+   - Usuario (request body)
+   - TokenResponse (success response)
+   - ErrorResponse (error response)
+   - StatsResponse (stats response)
+   - UserTokensResponse (user tokens response)
+
+4. CÓDIGOS DE RESPUESTA:
+   - 200: Éxito
+   - 429: Too Many Requests (rate limited)
+   - 422: Validation Error
+   - 500: Internal Server Error
+
+5. EJEMPLOS:
+   - Request examples para cada endpoint
+   - Response examples para cada status code
+
+6. SEGURIDAD (opcional):
+   - Bearer token authentication (placeholder)
+
+7. TAGS:
+   - Rate Limiting: Para endpoints de rate limiting
+   - Monitoring: Para stats
+   - Info: Para root
+
+8. DOCUMENTACIÓN:
+   - Descripciones detalladas de cada campo
+   - Explicación del algoritmo Token Bucket
+   - Ejemplos de uso
+   - Límites y restricciones
+
+FORMATO:
+- YAML válido (no JSON)
+- OpenAPI 3.0.0 o superior
+- Listo para copiar y pegar en Swagger Editor (https://editor.swagger.io)
+- Comentarios explicativos donde sea útil
+- Indentación correcta (2 espacios)
+
+RESULTADO ESPERADO:
+Un archivo YAML completo, profesional y production-ready que pueda:
+- Importarse directamente en Swagger UI
+- Usarse para generar clientes en cualquier lenguaje
+- Servir como documentación oficial de la API
+- Validar requests/responses automáticamente
+

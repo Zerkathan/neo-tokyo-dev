@@ -1,0 +1,416 @@
+openapi: 3.0.3
+
+info:
+  title: Rate Limiter API - Neo-Tokyo Dev
+  version: 1.0.0
+  description: |
+    🔮 **Rate Limiter API con Token Bucket Algorithm**
+    
+    API profesional de rate limiting usando el algoritmo Token Bucket para controlar
+    el flujo de peticiones por usuario. Generado por el Golden Stack:
+    - 🏛️ Arquitecto: Llama 3.1 (8B)
+    - ⚡ Implementador: Qwen 2.5 Coder (7B)
+    
+    ## Características
+    - ✅ Rate limiting por usuario (10 peticiones/minuto)
+    - ✅ Thread-safe con locks
+    - ✅ Limpieza automática de tokens expirados
+    - ✅ Límite máximo configurable por usuario
+    - ✅ Estadísticas en tiempo real
+    - ✅ HTTP 429 standard compliance
+    
+    ## Algoritmo Token Bucket
+    Cada usuario tiene un "bucket" de tokens. Cada petición consume 1 token.
+    Los tokens se regeneran automáticamente después de la ventana de tiempo (60s).
+    
+    ## Límites por defecto
+    - **Capacidad**: 10 peticiones por ventana
+    - **Ventana**: 60 segundos
+    - **Límite absoluto**: 15 peticiones máximo
+    
+  contact:
+    name: Neo-Tokyo Dev Team
+    url: https://github.com/neo-tokyo-dev
+    email: dev@neo-tokyo.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Servidor de desarrollo local
+  - url: https://api.neo-tokyo.dev
+    description: Servidor de producción
+
+tags:
+  - name: Rate Limiting
+    description: Endpoints protegidos con rate limiting
+  - name: Monitoring
+    description: Estadísticas y métricas del sistema
+  - name: Info
+    description: Información general de la API
+
+paths:
+  /:
+    get:
+      tags:
+        - Info
+      summary: Información de la API
+      description: |
+        Retorna información general de la API, incluyendo nombre, versión,
+        descripción y endpoints disponibles.
+      operationId: getApiInfo
+      responses:
+        '200':
+          description: Información de la API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiInfo'
+              example:
+                nombre: "Rate Limiter API - Neo-Tokyo Dev"
+                version: "1.0.0"
+                descripcion: "Rate Limiter con Token Bucket Algorithm"
+                generado_por: "Llama 3.1 + Qwen 2.5 Coder"
+                endpoints:
+                  "POST /rate-limited": "Endpoint protegido con rate limiting"
+                  "GET /stats": "Estadísticas del sistema"
+                  "GET /user/{usuario_id}/tokens": "Tokens de un usuario"
+
+  /rate-limited:
+    post:
+      tags:
+        - Rate Limiting
+      summary: Endpoint protegido por rate limiting
+      description: |
+        Intenta tomar un token del bucket para el usuario especificado.
+        
+        ### Comportamiento:
+        - ✅ **200**: Token tomado exitosamente, petición permitida
+        - ❌ **429**: Rate limit alcanzado, petición bloqueada
+        
+        ### Reglas:
+        1. Cada usuario tiene su propio contador de tokens
+        2. Máximo 10 peticiones por ventana de 60 segundos
+        3. Los tokens expirados se limpian automáticamente
+        4. Límite absoluto de 15 peticiones (configurable)
+        
+        ### Rate Limiting Headers:
+        La respuesta incluye `tokens_restantes` para que el cliente sepa
+        cuántas peticiones puede hacer antes de ser bloqueado.
+        
+      operationId: takeLimitedToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+            example:
+              id_usuario: 12345
+      responses:
+        '200':
+          description: Token tomado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+              example:
+                mensaje: "Token tomado exitosamente"
+                usuario_id: 12345
+                tokens_restantes: 7
+        '429':
+          description: Rate limit excedido (Too Many Requests)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                rate_limit_exceeded:
+                  value:
+                    detail: "Too Many Requests. Please try again later."
+                  summary: Rate limit alcanzado
+                user_max_exceeded:
+                  value:
+                    detail: "Too Many Requests for user 12345. Max: 15"
+                  summary: Límite máximo por usuario excedido
+        '422':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                detail:
+                  - loc: ["body", "id_usuario"]
+                    msg: "field required"
+                    type: "value_error.missing"
+
+  /stats:
+    get:
+      tags:
+        - Monitoring
+      summary: Estadísticas globales del sistema
+      description: |
+        Retorna estadísticas generales del rate limiter, incluyendo:
+        - Total de usuarios registrados
+        - Capacidad configurada
+        - Ventana de tiempo
+        - Límite máximo por usuario
+        
+        ### Uso:
+        Este endpoint es útil para monitoring y debugging.
+        No consume tokens del rate limiter.
+        
+      operationId: getSystemStats
+      responses:
+        '200':
+          description: Estadísticas del sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsResponse'
+              example:
+                total_users: 42
+                capacidad: 10
+                tiempo_token: 60.0
+                max_tokens_user: 15
+
+  /user/{usuario_id}/tokens:
+    get:
+      tags:
+        - Monitoring
+      summary: Tokens de un usuario específico
+      description: |
+        Consulta el estado de tokens de un usuario específico.
+        
+        ### Información retornada:
+        - Tokens usados en la ventana actual
+        - Tokens disponibles restantes
+        - Capacidad total del bucket
+        
+        ### Notas:
+        - Los tokens expirados se limpian automáticamente antes de contar
+        - Este endpoint NO consume tokens del rate limiter
+        
+      operationId: getUserTokens
+      parameters:
+        - name: usuario_id
+          in: path
+          required: true
+          description: ID único del usuario a consultar
+          schema:
+            type: integer
+            minimum: 1
+          example: 12345
+      responses:
+        '200':
+          description: Información de tokens del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTokensResponse'
+              example:
+                usuario_id: 12345
+                tokens_usados: 7
+                tokens_disponibles: 3
+                capacidad_total: 10
+
+components:
+  schemas:
+    Usuario:
+      type: object
+      required:
+        - id_usuario
+      properties:
+        id_usuario:
+          type: integer
+          description: ID único del usuario que solicita el token
+          minimum: 1
+          example: 12345
+      description: Modelo de usuario para peticiones al rate limiter
+
+    TokenResponse:
+      type: object
+      required:
+        - mensaje
+        - usuario_id
+        - tokens_restantes
+      properties:
+        mensaje:
+          type: string
+          description: Mensaje de confirmación
+          example: "Token tomado exitosamente"
+        usuario_id:
+          type: integer
+          description: ID del usuario que tomó el token
+          example: 12345
+        tokens_restantes:
+          type: integer
+          description: Tokens restantes en el bucket del usuario
+          minimum: 0
+          example: 7
+      description: Respuesta exitosa al tomar un token
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Descripción del error
+          example: "Too Many Requests. Please try again later."
+      description: Respuesta de error estándar
+
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+                description: Ubicación del error (path del campo)
+              msg:
+                type: string
+                description: Mensaje de error
+              type:
+                type: string
+                description: Tipo de error
+      description: Error de validación de datos de entrada
+
+    StatsResponse:
+      type: object
+      required:
+        - total_users
+        - capacidad
+        - tiempo_token
+      properties:
+        total_users:
+          type: integer
+          description: Número total de usuarios registrados en el sistema
+          minimum: 0
+          example: 42
+        capacidad:
+          type: integer
+          description: Capacidad del bucket (tokens por ventana)
+          example: 10
+        tiempo_token:
+          type: number
+          format: float
+          description: Ventana de tiempo en segundos para regenerar tokens
+          example: 60.0
+        max_tokens_user:
+          type: integer
+          nullable: true
+          description: Límite máximo absoluto de tokens por usuario
+          example: 15
+      description: Estadísticas globales del rate limiter
+
+    UserTokensResponse:
+      type: object
+      required:
+        - usuario_id
+        - tokens_usados
+        - tokens_disponibles
+        - capacidad_total
+      properties:
+        usuario_id:
+          type: integer
+          description: ID del usuario consultado
+          example: 12345
+        tokens_usados:
+          type: integer
+          description: Tokens consumidos en la ventana actual
+          minimum: 0
+          example: 7
+        tokens_disponibles:
+          type: integer
+          description: Tokens disponibles restantes
+          minimum: 0
+          example: 3
+        capacidad_total:
+          type: integer
+          description: Capacidad total del bucket
+          example: 10
+      description: Estado de tokens de un usuario específico
+
+    ApiInfo:
+      type: object
+      required:
+        - nombre
+        - version
+        - descripcion
+      properties:
+        nombre:
+          type: string
+          description: Nombre de la API
+          example: "Rate Limiter API - Neo-Tokyo Dev"
+        version:
+          type: string
+          description: Versión semántica de la API
+          pattern: '^\d+\.\d+\.\d+$'
+          example: "1.0.0"
+        descripcion:
+          type: string
+          description: Descripción breve del propósito de la API
+          example: "Rate Limiter con Token Bucket Algorithm"
+        generado_por:
+          type: string
+          description: Información sobre la generación del sistema
+          example: "Llama 3.1 + Qwen 2.5 Coder"
+        endpoints:
+          type: object
+          additionalProperties:
+            type: string
+          description: Mapa de endpoints disponibles con descripciones
+      description: Información general de la API
+
+  responses:
+    RateLimitExceeded:
+      description: Rate limit excedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            detail: "Too Many Requests. Please try again later."
+    
+    ValidationError:
+      description: Error de validación de entrada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+  examples:
+    UsuarioEjemplo:
+      value:
+        id_usuario: 12345
+      summary: Usuario típico
+      
+    TokenResponseSuccess:
+      value:
+        mensaje: "Token tomado exitosamente"
+        usuario_id: 12345
+        tokens_restantes: 7
+      summary: Token tomado exitosamente
+
+    RateLimitError:
+      value:
+        detail: "Too Many Requests. Please try again later."
+      summary: Rate limit alcanzado
+
+# Security schemes (opcional - para futuras versiones)
+# securitySchemes:
+#   bearerAuth:
+#     type: http
+#     scheme: bearer
+#     bearerFormat: JWT
+#     description: JWT token para autenticación (futuro)
+

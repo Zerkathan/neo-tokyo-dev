@@ -1,0 +1,106 @@
+Analiza el sistema de colaboración multi-agente Neo-Tokyo Dev v3.0 y propón mejoras.
+
+DESCRIPCIÓN DEL SISTEMA ACTUAL:
+
+El sistema ai_duo.py (918 líneas) implementa colaboración entre dos agentes:
+- 🏛️ Arquitecto Supremo (Distinguished Engineer)
+- ⚡ Implementador Supremo (Staff Engineer)
+
+ARQUITECTURA ACTUAL:
+
+1. LLMProvider (ABC) con 3 implementaciones:
+   - OpenAIProvider (AsyncOpenAI)
+   - AnthropicProvider (AsyncAnthropic)  
+   - GeminiProvider (wrapper async con run_in_executor)
+
+2. Agent class con método async chat():
+   - Retry automático: 3 intentos
+   - Backoff exponencial: retry_delay * (2 ** attempt)
+   - Manejo de errores: APIConnectionError, APIRateLimitError, APIAuthenticationError
+
+3. Sistema de logging:
+   - CyberpunkFormatter con colores ANSI
+   - Logging síncrono con logging.Logger
+   - Sin rotación de archivos
+   - Sin structured logging (JSON)
+
+4. Manejo de errores actual:
+   ```python
+   for attempt in range(self._retry_count):
+       try:
+           reply = await self.provider.generate_response(...)
+           return reply
+       except APIRateLimitError as e:
+           wait_time = self._retry_delay * (2 ** attempt)
+           await asyncio.sleep(wait_time)
+       except APIConnectionError as e:
+           wait_time = self._retry_delay * (2 ** attempt)
+           await asyncio.sleep(wait_time)
+   ```
+
+PROBLEMAS IDENTIFICADOS:
+
+1. **Sin Circuit Breaker**: Si un provider falla repetidamente, sigue intentando
+2. **Sin Timeouts configurables**: Llamadas pueden colgarse indefinidamente
+3. **Backoff sin jitter**: Puede causar thundering herd
+4. **Logging síncrono**: Puede ser bottleneck en alta carga
+5. **Sin health checks**: No detecta providers caídos proactivamente
+6. **Sin fallback**: Si un provider falla, no intenta otro
+7. **Sin métricas**: No hay observability (latencia, errores, etc.)
+8. **Sin bulkhead**: Un provider lento afecta todo el sistema
+
+TAREA:
+
+Diseña e implementa mejoras para hacer el sistema más resiliente:
+
+1. **Circuit Breaker Pattern**:
+   - Estados: CLOSED, OPEN, HALF_OPEN
+   - Threshold de errores antes de abrir
+   - Timeout antes de intentar HALF_OPEN
+   - Por provider (no global)
+
+2. **Timeout Strategy**:
+   - Timeouts configurables por provider
+   - Timeout total para la operación completa
+   - Cancel de operaciones que excedan timeout
+
+3. **Retry con Jitter**:
+   - Agregar jitter aleatorio al backoff
+   - Evitar thundering herd
+   - Formula: wait_time = base * (2 ** attempt) + random(0, jitter)
+
+4. **Async Logging**:
+   - Usar aiologger o logging async
+   - Queue de logs para no bloquear
+   - Rotación de archivos
+   - Structured logging (JSON)
+
+5. **Health Checks**:
+   - Ping periódico a providers
+   - Detección proactiva de providers caídos
+   - Métricas de latencia por provider
+
+6. **Fallback Strategy**:
+   - Si provider A falla, intentar provider B
+   - Lista de providers en orden de preferencia
+   - Configuración de fallbacks
+
+7. **Observability**:
+   - Métricas: latencia, errores, retries
+   - Exportar a Prometheus/StatsD
+   - Dashboard de health
+
+RESULTADO ESPERADO:
+
+1. Análisis detallado de cada problema
+2. Diseño de la arquitectura mejorada
+3. Implementación de los componentes críticos:
+   - CircuitBreaker class
+   - ResilientLLMProvider wrapper
+   - AsyncLogger system
+   - HealthChecker
+   - MetricsCollector
+4. Código completo con type hints y docstrings
+5. Ejemplos de configuración
+6. Tests para los nuevos componentes
+

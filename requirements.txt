@@ -1,0 +1,16 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔮 NEO-TOKYO DEV // MULTI-AGENT COLLABORATION SYSTEM v2.0
+# ══════════════════════════════════════════════════════════════════════════════
+# Core async dependencies for the neural network collaboration protocol
+
+# LLM Provider SDKs (async-enabled)
+openai>=1.12.0              # AsyncOpenAI client for GPT models
+anthropic>=0.18.0           # AsyncAnthropic client for Claude models
+google-generativeai>=0.4.0  # Gemini API (sync, wrapped for async)
+
+# Environment & Configuration
+python-dotenv>=1.0.0        # .env file support for API keys
+
+# Type checking (development)
+# mypy>=1.8.0               # Static type checker (optional)
+# types-requests>=2.31.0    # Type stubs (optional)

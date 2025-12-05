@@ -1,0 +1,56 @@
+Toma esta clase TokenBucket del rate_limiter.py y diseña una suite de tests unitarias EXHAUSTIVA usando Pytest.
+
+CÓDIGO A TESTEAR:
+
+class TokenBucket:
+    def __init__(self, capacidad: int, tiempo_token: float, max_tokens_user: int = None):
+        self.capacidad = capacidad
+        self.tiempo_token = tiempo_token
+        self.token_timestamps: Dict[int, List[Tuple[float, float]]] = {}
+        self.max_tokens_user = max_tokens_user
+        self.lock = threading.Lock()
+    
+    async def tomar_token(self, usuario_id: int) -> bool:
+        with self.lock:
+            ahora = datetime.now().timestamp()
+            if usuario_id not in self.token_timestamps:
+                self.token_timestamps[usuario_id] = []
+            self.token_timestamps[usuario_id] = [
+                (token, timestamp) for token, timestamp in self.token_timestamps[usuario_id]
+                if ahora - timestamp < self.tiempo_token
+            ]
+            user_tokens = len(self.token_timestamps[usuario_id])
+            if self.max_tokens_user is not None and user_tokens >= self.max_tokens_user:
+                raise HTTPException(status_code=429, detail='Too Many Requests')
+            if user_tokens >= self.capacidad:
+                return False
+            self.token_timestamps[usuario_id].append((1.0, ahora))
+            return True
+    
+    def get_tokens(self, usuario_id: int) -> int:
+        with self.lock:
+            ahora = datetime.now().timestamp()
+            if usuario_id not in self.token_timestamps:
+                return 0
+            self.token_timestamps[usuario_id] = [
+                (token, timestamp) for token, timestamp in self.token_timestamps[usuario_id]
+                if ahora - timestamp < self.tiempo_token
+            ]
+            return len(self.token_timestamps[usuario_id])
+
+REQUISITOS DE LOS TESTS:
+1. 100% cobertura de código
+2. Tests para casos de éxito (happy path)
+3. Tests para casos de error (rate limit, límite máximo)
+4. Tests para edge cases (0 tokens, tiempo expirado, concurrencia)
+5. Tests para thread-safety con múltiples usuarios
+6. Usa pytest con fixtures
+7. Usa pytest-asyncio para funciones async
+8. Usa unittest.mock para mockear datetime
+9. Usa pytest-cov para verificar cobertura
+10. Tests parametrizados con @pytest.mark.parametrize
+11. Docstrings en cada test explicando qué valida
+12. Assertions claros y descriptivos
+13. Setup y teardown con fixtures
+14. Tests de concurrencia con asyncio.gather
+
