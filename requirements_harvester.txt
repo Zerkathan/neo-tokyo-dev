@@ -1,0 +1,4 @@
+# Info-Harvester Dependencies
+aiohttp>=3.9.0
+beautifulsoup4>=4.12.0
+
