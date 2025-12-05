@@ -1,0 +1,78 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# 🐳 DOCKER COMPOSE - Neo-Tokyo Dev Services
+# Professional service orchestration
+# ══════════════════════════════════════════════════════════════════════════════
+
+version: '3.8'
+
+services:
+  # ────────────────────────────────────────────────────────────────────────────
+  # 🔴 SNIPER BOT - Opportunity Hunter
+  # ────────────────────────────────────────────────────────────────────────────
+  sniper-bot:
+    container_name: neo-tokyo-sniper-bot
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # Restart policy (always restart if crashes)
+    restart: always
+    
+    # Environment variables from .env file
+    env_file:
+      - .env
+    
+    # Volumes (persist data and allow config changes)
+    volumes:
+      - ./sniper_config.json:/app/sniper_config.json:ro  # Read-only config
+      - ./sniper_history.db:/app/sniper_history.db        # Persistent database
+      - ./logs:/app/logs                                  # Persistent logs
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Resource limits (optional, prevents runaway processes)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.5'
+    #       memory: 512M
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 📊 ADDITIONAL SERVICES (Uncomment to enable)
+# ══════════════════════════════════════════════════════════════════════════════
+
+  # # Intelligence Dashboard
+  # intelligence-dashboard:
+  #   container_name: neo-tokyo-dashboard
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dashboard
+  #   restart: always
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./intelligence.db:/app/intelligence.db
+  
+  # # Command Center (runs once per day)
+  # command-center:
+  #   container_name: neo-tokyo-command-center
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.command_center
+  #   restart: "no"  # Don't restart (run once)
+  #   env_file:
+  #     - .env
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 🌐 NETWORKS (Optional - for service communication)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# networks:
+#   neo-tokyo-net:
+#     driver: bridge
+
