@@ -438,13 +438,15 @@ class Agent:
         role: str,
         system_prompt: str,
         model: str,
-        provider: LLMProvider
+        provider: LLMProvider,
+        temperature: float = 0.7
     ) -> None:
         self.name = name
         self.role = role
         self.system_prompt = system_prompt
         self.model = model
         self.provider = provider
+        self.temperature = temperature
         self.history: list[ChatMessage] = [
             {"role": "system", "content": system_prompt}
         ]
@@ -466,7 +468,8 @@ class Agent:
                 
                 reply = await self.provider.generate_response(
                     self.history,
-                    self.model
+                    self.model,
+                    temperature=self.temperature
                 )
                 
                 self.history.append({"role": "assistant", "content": reply})
@@ -757,13 +760,16 @@ async def run_collaboration(
         f"{SHARED_CONTEXT_TEMPLATE.format(project_context=project_context)}"
     )
     
-    # Initialize agents
+    # Initialize agents with custom temperatures
+    # Architect: Higher temp (0.85) for creative analysis and critical thinking
+    # Implementer: Lower temp (0.3) for precise, consistent code
     architect = Agent(
         name="Arquitecto",
         role="Estrategia y Diseño",
         system_prompt=full_architect_prompt,
         model=review_model,
-        provider=architect_provider
+        provider=architect_provider,
+        temperature=0.85  # High creativity for architecture
     )
     
     implementer = Agent(
@@ -771,7 +777,8 @@ async def run_collaboration(
         role="Código y Ejecución",
         system_prompt=full_implementer_prompt,
         model=dev_model,
-        provider=implementer_provider
+        provider=implementer_provider,
+        temperature=0.3  # Low temp for precise code
     )
     
     # Initial message
