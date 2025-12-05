@@ -25,7 +25,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, TypedDict
+from pathlib import Path
+from typing import Any, Optional, TypedDict, List
 
 from dotenv import load_dotenv
 
@@ -685,6 +686,152 @@ def parse_consensus(response: str) -> ConsensusResult:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 💾 ARTIFACT EXTRACTION SYSTEM
+# ══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class CodeArtifact:
+    """Representa un artefacto de código extraído."""
+    language: str
+    code: str
+    filename: str
+
+
+def extract_code_artifacts(response: str) -> List[CodeArtifact]:
+    """
+    Extrae bloques de código de la respuesta del agente.
+    
+    Busca bloques markdown con formato:
+    ```python
+    código aquí
+    ```
+    
+    Args:
+        response: Respuesta del agente (Implementador típicamente)
+        
+    Returns:
+        Lista de artefactos de código encontrados
+    """
+    artifacts: List[CodeArtifact] = []
+    
+    # Pattern para bloques de código markdown
+    # Captura: lenguaje y contenido
+    code_pattern = r'```(\w+)\s*\n(.*?)```'
+    
+    matches = re.finditer(code_pattern, response, re.DOTALL)
+    
+    for match in matches:
+        language = match.group(1).lower()
+        code = match.group(2).strip()
+        
+        # Filtrar bloques muy pequeños (probablemente no son código real)
+        if len(code) < 20:
+            continue
+        
+        # Filtrar bloques que son solo JSON (no código ejecutable)
+        if language == "json":
+            continue
+        
+        # Mapear lenguaje a extensión
+        extension_map = {
+            "python": ".py",
+            "javascript": ".js",
+            "typescript": ".ts",
+            "java": ".java",
+            "cpp": ".cpp",
+            "c": ".c",
+            "go": ".go",
+            "rust": ".rs",
+            "ruby": ".rb",
+            "php": ".php",
+            "bash": ".sh",
+            "sql": ".sql",
+            "yaml": ".yaml",
+            "html": ".html",
+            "css": ".css",
+        }
+        
+        extension = extension_map.get(language, ".txt")
+        
+        # Generar nombre de archivo único
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"artifact_{timestamp}_{len(artifacts) + 1}{extension}"
+        
+        artifacts.append(CodeArtifact(
+            language=language,
+            code=code,
+            filename=filename
+        ))
+    
+    return artifacts
+
+
+def save_artifacts(
+    response: str,
+    output_dir: str = "output",
+    agent_name: str = "implementer"
+) -> List[str]:
+    """
+    Guarda artefactos de código en archivos locales.
+    
+    Args:
+        response: Respuesta del agente con código
+        output_dir: Directorio donde guardar (default: output/)
+        agent_name: Nombre del agente para logging
+        
+    Returns:
+        Lista de rutas de archivos guardados
+    """
+    saved_files: List[str] = []
+    
+    try:
+        # Crear directorio output si no existe
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        
+        # Extraer artefactos
+        artifacts = extract_code_artifacts(response)
+        
+        if not artifacts:
+            logger.debug(f"No code artifacts found in {agent_name} response")
+            return saved_files
+        
+        # Guardar cada artefacto
+        for artifact in artifacts:
+            file_path = output_path / artifact.filename
+            
+            try:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(artifact.code)
+                
+                saved_files.append(str(file_path))
+                
+                logger.info(
+                    f"💾 Artifact saved: {artifact.filename} "
+                    f"({len(artifact.code)} chars, {artifact.language})",
+                    extra={"agent": agent_name.upper()}
+                )
+                
+            except IOError as e:
+                logger.error(
+                    f"Failed to save artifact {artifact.filename}: {e}",
+                    extra={"agent": agent_name.upper()}
+                )
+        
+        # Resumen
+        if saved_files:
+            logger.info(
+                f"✅ {len(saved_files)} artifact(s) secured in: {output_dir}/",
+                extra={"agent": "SYSTEM"}
+            )
+    
+    except Exception as e:
+        logger.error(f"Artifact extraction error: {e}", extra={"agent": "SYSTEM"})
+    
+    return saved_files
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # 🚀 MAIN COLLABORATION ENGINE
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -845,6 +992,14 @@ async def run_collaboration(
         print(implementer_response)
         print(f"{NeonColors.GREEN}{'─' * 60}{NeonColors.RESET}\n")
         
+        # 💾 ARTIFACT EXTRACTION: Always try to save code from implementer
+        # (even if consensus not reached yet, save intermediate artifacts)
+        save_artifacts(
+            implementer_response,
+            output_dir="output",
+            agent_name="implementer"
+        )
+        
         # Check for consensus from Implementer
         implementer_consensus = parse_consensus(implementer_response)
         if implementer_consensus.status == ConsensusStatus.CONSENSUS_REACHED:
@@ -873,6 +1028,16 @@ async def run_collaboration(
         logger.info(f"Final Output: {final_output}")
     else:
         logger.warning("⚠️  Max turns reached without explicit consensus")
+        
+        # 💾 ARTIFACT EXTRACTION: Even without consensus, try to save code
+        # from the last implementer response
+        if implementer_response:
+            logger.info("Attempting to extract artifacts from final response...")
+            saved_artifacts = save_artifacts(
+                implementer_response,
+                output_dir="output",
+                agent_name="implementer"
+            )
     
     logger.info("═" * 60)
     logger.info("🔌 COLLABORATION PROTOCOL TERMINATED")
