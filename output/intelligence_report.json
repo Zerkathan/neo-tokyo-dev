@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "harvested_at": "2025-12-05T02:29:55.501787",
+    "total_articles": 10,
+    "sources": [
+      "Hacker News",
+      "TechCrunch"
+    ]
+  },
+  "articles": [
+    {
+      "title": "AV1: A Modern, Open Codec",
+      "url": "https://netflixtechblog.com/av1-now-powering-30-of-netflix-streaming-02f592242d80",
+      "score": 267,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.498995"
+    },
+    {
+      "title": "BMW PHEV: Safety fuse replacement is extremely expensive",
+      "url": "https://evclinic.eu/2025/12/04/2021-phev-bmw-ibmucp-21f37e-post-crash-recovery-when-eu-engineering-becomes-a-synonym-for-unrepairable-generating-waste/",
+      "score": 134,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.499362"
+    },
+    {
+      "title": "I have been writing a niche history blog for 15 years",
+      "url": "https://resobscura.substack.com/p/why-i-have-been-writing-a-niche-history",
+      "score": 27,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.499688"
+    },
+    {
+      "title": "Trick users and bypass warnings – Modern SVG Clickjacking attacks",
+      "url": "https://lyra.horse/blog/2025/12/svg-clickjacking/",
+      "score": 102,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.499909"
+    },
+    {
+      "title": "NeurIPS 2025 Best Paper Awards",
+      "url": "https://blog.neurips.cc/2025/11/26/announcing-the-neurips-2025-best-paper-awards/",
+      "score": 57,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.500146"
+    },
+    {
+      "title": "Blogging in 2025: Screaming into the Void",
+      "url": "https://askmike.org/articles/blogging-in-2025-screaming-into-the-void/",
+      "score": 21,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.500424"
+    },
+    {
+      "title": "After 40 years of adventure games, Ron Gilbert pivots to outrunning Death",
+      "url": "https://arstechnica.com/gaming/2025/12/after-40-years-of-adventure-games-ron-gilbert-pivots-to-outrunning-death/",
+      "score": 18,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.500716"
+    },
+    {
+      "title": "State of AI: An Empirical 100T Token Study with OpenRouter",
+      "url": "https://openrouter.ai/state-of-ai",
+      "score": 147,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.500945"
+    },
+    {
+      "title": "CUDA-l2: Surpassing cuBLAS performance for matrix multiplication through RL",
+      "url": "https://github.com/deepreinforce-ai/CUDA-L2",
+      "score": 95,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.501194"
+    },
+    {
+      "title": "The Ofcom Files, Part 4: Ofcom Rides Again",
+      "url": "https://prestonbyrne.com/2025/12/04/the-ofcom-files-part-4-ofcom-rides-again/",
+      "score": 56,
+      "source": "Hacker News",
+      "timestamp": "2025-12-05T02:29:55.501451"
+    }
+  ]
+}
