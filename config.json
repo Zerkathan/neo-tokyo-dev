@@ -1,0 +1,17 @@
+{
+  "user_location": "New York",
+  "crypto_holdings": {
+    "bitcoin": 0.1,
+    "ethereum": 1.5,
+    "solana": 50
+  },
+  "server_urls": [
+    "https://google.com",
+    "https://github.com",
+    "https://stackoverflow.com",
+    "https://reddit.com"
+  ],
+  "news_sources": ["hacker_news"],
+  "todo_file": "todos.txt"
+}
+
